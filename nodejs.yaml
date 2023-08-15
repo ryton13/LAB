@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  Devops:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Nom de la paire de clé pour la connexion à l'instance via SSH
+    
+Resources:
+  Nodejs:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-014d05e6b24240371
+      KeyName: !Ref Devops
+      SecurityGroups:
+        - !Ref NodejsSG
+      UserData: 
+        Fn::Base64:
+          |
+          #!/bin/bash 
+          set -e
+          curl -sL https://deb.nodesource.com/setup_16.x | bash -
+          sudo apt install nodejs
+          node -v
+          npm -v
+          curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+          echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+          sudo apt update && sudo apt install yarn
+          yarn --version
+          sudo -i -u ubuntu bash << EOF
+          set -e
+          cd /home/ubuntu
+          sudo npm install -g pm2
+          git clone https://github.com/5minslearn/node_with_docker.git
+          cd node_with_docker
+          yarn install 
+          pm2 start yarn --time --interpreter bash --name sample_node -- start -p 8000
+          EOF
+            
+  NodejsSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: autoriser le http et le ssh 
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '80'
+        ToPort: '80'
