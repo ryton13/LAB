@@ -10,7 +10,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
-      ImageId: ami-014d05e6b24240371
+      ImageId: ami-0f014d1f920a73971
       KeyName: !Ref Devops
       SecurityGroups:
         - !Ref NodejsSG
