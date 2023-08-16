@@ -1,9 +1,14 @@
 AWSTemplateFormatVersion: 2010-09-09
 
 Parameters:
-  Devops:
+  sgCidr:
+    Type: String
+    Description: Custom Security Group IP Cidr Block
+    Default: 0.0.0.0/0
+  KeyName:
+    Description: Paire de clefs SSH pour pouvoir s'y connecter
     Type: AWS::EC2::KeyPair::KeyName
-    Description: Nom de la paire de clé pour la connexion à l'instance via SSH
+    Default: Devops 
     
 Resources:
   Nodejs:
@@ -11,7 +16,7 @@ Resources:
     Properties:
       InstanceType: t2.micro
       ImageId: ami-0f014d1f920a73971
-      KeyName: !Ref Devops
+      KeyName: !Ref KeyName
       SecurityGroups:
         - !Ref NodejsSG
       UserData: 
@@ -42,6 +47,13 @@ Resources:
     Properties:
       GroupDescription: autoriser le http et le ssh 
       SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: '80'
-        ToPort: '80'
+        - Description: Allow SSH
+          IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: !Ref sgCidr
+        - Description: Allow Http
+          IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: !Ref sgCidr
